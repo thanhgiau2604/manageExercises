@@ -31,5 +31,5 @@ adminController(app,jwt,apiRouter);
 driveController(app);
 socketController(app,io);
 
-app.use("/", express.static(__dirname+"/public"));
+app.use(express.static(__dirname+"/public"));
 server.listen(PORT, ()=> console.log("App listening on PORT "+PORT));
