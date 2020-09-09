@@ -1593,7 +1593,7 @@ body.mobile-nav-active #mobile-nav-toggle i {
    width: 2rem;
    height: 2rem;
    border-radius: 4rem;
-   background-color: #2a9c0d;
+   background-color: #1dd085;
    top: 6px;
    left: 5px;
    transition: background-color 0.25s linear, transform 0.25s linear;
@@ -1604,7 +1604,7 @@ body.mobile-nav-active #mobile-nav-toggle i {
 }
 
 .switch-input:checked + .switch {
-   background-color: #2a9c0d;
+   background-color: #1dd085;
 }
 
 .switch-input:checked + .switch:after {
@@ -1731,4 +1731,24 @@ body {
     font-size: 13px;
     text-transform: none;
     text-align: left;
+}
+.search-form {
+  margin: auto;
+  width: 50%;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.search-form__icon {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.search-form__input {
+  padding: 0 1.5rem;
+  flex: 1;
+  margin: 0 auto;
 }

@@ -18,9 +18,7 @@ module.exports = function(app, jwt, apiRouter){
     //     username: "manguyen107",
     //     password: "1234567890"
     // }
-    // Users.create(user);
-
-
+    // Users.create(user)
     app.post("/login",parser,(req,res)=>{
         let {username,password} = req.body;
         username = username.toString().trim().toLowerCase();
@@ -48,7 +46,6 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     })
-
     apiRouter.use(parser,function(req,res,next){
         let token = req.query.token || req.params.token || req.body.token;
         if (token){
@@ -64,9 +61,7 @@ module.exports = function(app, jwt, apiRouter){
             return res.json({success:0});
         }
     });
-
     apiRouter.get("/",(req,res)=>res.json({success:1}));
-
     apiRouter.post("/updatePassword",parser,(req,res)=>{
         const {username, password} = req.body;
         Users.update({username:username},{$set:{password:password}},{new:true},function(err,data){
@@ -77,7 +72,6 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     })
-
     apiRouter.post("/saveExercise",parser,(req,res)=>{
         let {id,title,requirement,deadline,name,view,download} = req.body;
         const status = false;
@@ -93,11 +87,9 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     });
-
     apiRouter.get("/allExercises",(req,res)=>{
         getAllExercises(res);
     });
-
     apiRouter.post("/updateExercise",parser,(req,res)=>{
         const {id,title,requirement,name, view, download} = req.body;
         const file = {name, view, download};
@@ -113,7 +105,6 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     });
-
     apiRouter.post("/updateStatusExercise",parser,(req,res)=>{
         const {id,status} = req.body;
         Exercises.findOneAndUpdate({id:id},{$set:{status:status}},{new:true},function(err,data){
@@ -132,7 +123,6 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     })
-
     apiRouter.post("/setTimeoutExercises",parser,(req,res)=>{
         const {id} = req.body;
         Exercises.findOneAndUpdate({id:id},{$set:{isTimeout:true}},function(err,data){
@@ -141,7 +131,6 @@ module.exports = function(app, jwt, apiRouter){
             }
         })
     })
-
     apiRouter.post("/getListSubmits",parser,(req,res)=>{
         const {id} = req.body;
         Exercises.findOne({id:id},function(err,data){
@@ -149,6 +138,35 @@ module.exports = function(app, jwt, apiRouter){
                 res.json({success:0});
             } else {
                 res.send(data.listSubmit);
+            }
+        })
+    })
+    apiRouter.get("/beingExercises",parser,(req,res)=>{
+        Exercises.find({status:true,isTimeout:false}).sort({"id":"descending"}).exec(function(err,result){
+            if (err){
+                res.send([]);
+            } else {
+                res.send(result);
+            }
+        })
+    })
+    apiRouter.post("/searchExercises",parser,(req,res)=>{
+        const {value} = req.body;
+        Exercises.find({title: {$regex : ".*"+value+".*",'$options' : 'i' }},function(err,data){
+            if (err){
+                throw err;
+            } else {
+                if (data.length==0){
+                    Exercises.find({$text:{$search:value}},function(err,data){
+                        if (err){
+                            throw err;
+                        } else {
+                            res.send(data);
+                        }
+                    })
+                } else {
+                    res.send(data);
+                }
             }
         })
     })

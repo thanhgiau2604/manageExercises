@@ -787,8 +787,29 @@ class Exercises extends React.Component{
         })
       }  
     }
+    beingExer(){
+      this.refs.search.value="";
+      const token = localStorage.getItem("token");
+      $.get("/api/beingExercises",{token},function(data){
+        main.setState({listExercises:data});
+      })
+    }
+    allExer(){
+      this.refs.search.value="";
+      const token = localStorage.getItem("token");
+      $.get("/api/allExercises",{token},function(data){
+        main.setState({listExercises:data});
+      })
+    }
+    searchExer(e){
+      $("#all").click();
+      const value = e.target.value;
+      const token = localStorage.getItem("token");
+      $.post("/api/searchExercises",{token,value},function(data){
+        main.setState({listExercises:data});
+      })
+    }
     render(){
-      
         return(<section id="get-started" className="padd-section text-center">
                 <div className="container" data-aos="fade-up">
                     <div className="section-title text-center">
@@ -796,14 +817,12 @@ class Exercises extends React.Component{
                     </div>
                 {main.props.isAdmin ?
                 <div className="option_box">
-                    <input type="radio" id="male" class="radio-input" name="gender" defaultChecked="true"/>
-                    <label for="male" class="radio-label">Tất cả</label>
-                    <input type="radio" id="fmale" class="radio-input" name="gender" />
-                    <label for="fmale" class="radio-label">Đang diễn ra</label> <br/> 
-                    <form className="form-group date_input">
-                      <label>{"Ngày :"}</label>
-                      <input className="form-control" type="date" id="create_date" name="create_date" />
-                    </form> 
+                    <input type="radio" id="all" class="radio-input" name="option" defaultChecked="true" onClick={this.allExer.bind(this)} value="all" ref="all"/>
+                    <label for="all" class="radio-label">Tất cả</label>
+                    <input type="radio" id="being" class="radio-input" name="option" onClick={this.beingExer.bind(this)} value="being" ref="being"/>
+                    <label for="being" class="radio-label">Đang diễn ra</label> <br/> 
+                    <div class="search-form"><i class="fa fa-search" aria-hidden="true"></i>
+                    <input type="text" placeholder="Search" class="search-form__input" onChange={this.searchExer.bind(this)} ref="search"/></div>
                     <button className="btn btn-success btnAdd" data-toggle="modal" data-target="#newExercise">
                       <i class="fa fa-plus" aria-hidden="true"></i> New Exercise</button>
                 </div> : <div></div>}
