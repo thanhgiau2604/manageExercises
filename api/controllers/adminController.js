@@ -87,7 +87,6 @@ module.exports = function(app, jwt, apiRouter){
         const isTimeout =  (deadline - new Date().getTime()) <= 0;
         const singleExercise = {id,title,requirement,deadline,status,listSubmit,isDelete,
         file: {id,name,view,download}, isTimeout}
-        console.log(singleExercise);
         Exercises.create(singleExercise,function(err,data){
             if (!err&&data){
                 getAllExercises(res);

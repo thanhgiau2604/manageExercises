@@ -10,7 +10,7 @@ function getCurrentDayTime() {
     var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
     var day = new Date(utc + (3600000*offset));
     var nowday = day.getDate().toString()+"-"+(day.getMonth()+1).toString()+"-"+day.getFullYear().toString()+" "
-    +day.getHours().toString()+"h"+day.getMinutes().toString();
+    +day.getHours().toString()+":"+day.getMinutes().toString();
     return nowday;
   }
 function getValidExercises(res){

@@ -6,6 +6,10 @@ module.exports = function(app, io){
 
         socket.on("update-for-admin-list-submits",(data)=>{
             io.sockets.emit("admin-update-list-submits",data);
+        });
+
+        socket.on("update-for-admin-count-submits",(data)=>{
+            io.sockets.emit("admin-update-count-submits",data);
         })
     })
 }

@@ -328,7 +328,7 @@ class AllSubmition extends React.Component {
             <ul class="list-group list-group-flush list-submits">
               {this.state.listSubmits.map(function(submit, index){
                 return <li class="list-group-item" key={submit.id}>
-                  File: {submit.name},<a href={submit.view} target="_blank">{" view"}</a>, 
+                  {index+1}. File: {submit.name},<a href={submit.view} target="_blank">{" view"}</a>, 
                   <a href={submit.download}>{" download"}</a>
                 </li>
               })}
@@ -434,6 +434,7 @@ class SingleExercise extends React.Component{
                     submitted.push(idExercise);
                     localStorage.setItem("submitted",JSON.stringify(submitted));
                     socket.emit("update-for-admin-list-submits",idExercise);
+                    socket.emit("update-for-admin-count-submits",idExercise);
                   }
                 })
               } else {
@@ -583,7 +584,8 @@ class SingleExerciseAdmin extends React.Component {
     this.changeStatus = this.changeStatus.bind(this);
     this.state = {
       isChecked: this.props.exer.status,
-      interval: ""
+      interval: "",
+      countSubmit: this.props.exer.listSubmit.length
     }
   }
   componentDidUpdate(){
@@ -619,7 +621,6 @@ class SingleExerciseAdmin extends React.Component {
 
       return false;
     });
-    console.log("admin did mount");
     let _this = this;
     let now = new Date().getTime();
     let deadline = parseInt(this.props.exer.deadline);
@@ -645,6 +646,11 @@ class SingleExerciseAdmin extends React.Component {
         distance -= 1000;
       }, 1000);
     }
+    socket.on("admin-update-count-submits",function(data){
+      if (_this.props.exer.id==data){
+        _this.setState({countSubmit: _this.state.countSubmit+1});
+      }
+    })
   }
   changeStatus(e){
     this.setState({isChecked: !this.state.isChecked});
@@ -692,7 +698,7 @@ class SingleExerciseAdmin extends React.Component {
                </div> : ""}
                 <button type="button" className="btn btn-primary btn-submit" data-toggle="modal" data-target="#modalSubmit"
                 onClick={this.viewSubmits.bind(this)}>Bài đã nộp: 
-                <span className="countSubmit">{" "+this.props.exer.listSubmit.length}</span></button>
+                <span className="countSubmit">{" "+this.state.countSubmit}</span></button>
                 <div className="button_manage">
                     <button className="btn btn-warning btnEdit" data-toggle="modal" data-target="#editExercise" onClick={this.edit.bind(this)}>
                       <i class="fa fa-pencil-square" aria-hidden="true"></i> Edit</button>
@@ -790,7 +796,7 @@ class Exercises extends React.Component{
                     </div>
                 {main.props.isAdmin ?
                 <div className="option_box">
-                    <input type="radio" id="male" class="radio-input" name="gender" />
+                    <input type="radio" id="male" class="radio-input" name="gender" defaultChecked="true"/>
                     <label for="male" class="radio-label">Tất cả</label>
                     <input type="radio" id="fmale" class="radio-input" name="gender" />
                     <label for="fmale" class="radio-label">Đang diễn ra</label> <br/> 
