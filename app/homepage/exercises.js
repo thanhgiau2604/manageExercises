@@ -197,7 +197,10 @@ class EditExercise extends React.Component {
                     that.setState({processing:0});
                     main.setState({ listExercises: data });
                     if (that.state.exer.status){
-                      let sendData = that.state.exer.id;
+                      let sendData = {
+                        id: that.state.exer.id,
+                        deadline: deadline
+                      }
                       socket.emit("update-for-client-list-exercises",sendData);
                     }
                   }
@@ -224,7 +227,10 @@ class EditExercise extends React.Component {
           that.setState({processing:0});
           main.setState({ listExercises: data });
           if (that.state.exer.status){
-            let sendData = that.state.exer.id;
+            let sendData = {
+              id: that.state.exer.id,
+              deadline: deadline
+            }
             socket.emit("update-for-client-list-exercises",sendData);
           }
         }
@@ -304,7 +310,6 @@ class AllSubmition extends React.Component {
   componentDidMount(){
     let _this = this;
     socket.on("admin-update-list-submits",function(data){
-      console.log(data+"&&"+_this.state.idExercise);
       if (data == _this.state.idExercise){
         const token = localStorage.getItem("token");
         const id = data;
@@ -455,7 +460,7 @@ class SingleExercise extends React.Component{
         localStorage.setItem(this.props.exer.id, "false");
         let _this = this;
         let now = new Date().getTime();
-        let deadline = parseInt(this.props.exer.deadline);
+        let deadline = parseInt(localStorage.getItem(this.props.exer.id+"deadline"));
         let distance = deadline - now + 1000;
         var second = 1000,
           minute = second * 60,
@@ -492,7 +497,6 @@ class SingleExercise extends React.Component{
       clearInterval(this.state.interval);
     }
     componentDidMount(){
-      console.log("did mount ne");
       var swiper = new Swiper('.blog-slider', {
         effect: 'fade'
       });
@@ -638,7 +642,6 @@ class SingleExerciseAdmin extends React.Component {
       })
     } else {
       this.state.interval = setInterval(function () {
-        console.log(distance);
         if (distance - 1000 <= 0) {
           clearInterval(_this.state.interval);
           const id = _this.props.exer.id;
@@ -761,8 +764,8 @@ class Exercises extends React.Component{
         //cập nhật khi admin thay đổi on/off bài tập
         socket.on("client-update-list-exercises", function (receiveData) {
           if (main.props.isAdmin == false){
-            console.log("Cập nhật thôi");
-            localStorage.setItem(receiveData,"true");
+            localStorage.setItem(receiveData.id,"true");
+            localStorage.setItem(receiveData.id+"deadline",receiveData.deadline);
             _this.setState({processing:true});
             $.get("/getValidExercises", function (data) {
               main.setState({ listExercises: data, processing:false});

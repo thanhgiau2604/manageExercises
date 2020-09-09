@@ -20,8 +20,8 @@ app.use(function(req,res,next) {
 });
 
 mongoose.Promise = global.Promise;
-// mongoose.connect("mongodb://localhost:27017/mExercises",{useNewUrlParser:true});
-mongoose.connect("mongodb+srv://thanhgiau2604:ntgspkt2604@cluster0.uiqaq.mongodb.net/mExercises?retryWrites=true&w=majority");
+mongoose.connect("mongodb://localhost:27017/mExercises",{useNewUrlParser:true});
+//mongoose.connect("mongodb+srv://thanhgiau2604:ntgspkt2604@cluster0.uiqaq.mongodb.net/mExercises?retryWrites=true&w=majority");
 mongoose.set('useCreateIndex',true);
 let apiRouter = express.Router();
 
