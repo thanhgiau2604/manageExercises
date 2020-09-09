@@ -4,7 +4,7 @@ import $ from 'jquery'
 import Swiper from 'swiper'
 import 'swiper/swiper-bundle.css'
 import io from 'socket.io-client'
-const socket = io('http://localhost:3000');
+const socket = io('https://mexercises.herokuapp.com');
 var file, main, edit, deleted, submit;
 class NewExercise extends React.Component {
   constructor(props){
