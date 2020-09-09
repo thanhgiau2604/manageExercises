@@ -68,6 +68,10 @@ function uploadFile(auth){
                     type:"anyone"
                 }}, function(err,result){
               });
+              let path = "./public/upload/"+nameFile;
+              fs.unlink(path,(err)=>{
+                  if (err) console.log(err);
+              })
               response.json({success:1,idFile: file.data.id, name:nameFile}); 
         }      
     })

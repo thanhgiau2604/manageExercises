@@ -468,22 +468,23 @@ class SingleExercise extends React.Component{
             $.post("/setTimeoutExercises", { id }, function (data) {
               main.setState({ listExercises: data });
             })
+          } else {
+            distance -= 1000;
+            var objDateTime = {
+              ngay: Math.floor(distance / day),
+              gio: Math.floor((distance % day) / hour),
+              phut: Math.floor((distance % hour) / minute),
+              giay: Math.floor((distance % minute) / second)
+            }
+            if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
+            if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
+            if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
+            if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
+            _this.setState({
+              day: objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
+              second: objDateTime.giay
+            });
           }
-          distance -= 1000;
-          var objDateTime = {
-            ngay: Math.floor(distance / day),
-            gio: Math.floor((distance % day) / hour),
-            phut: Math.floor((distance % hour) / minute),
-            giay: Math.floor((distance % minute) / second)
-          }
-          if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
-          if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
-          if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
-          if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
-          _this.setState({
-            day: objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
-            second: objDateTime.giay
-          });
         }, 1000)
       }
     }
@@ -511,20 +512,23 @@ class SingleExercise extends React.Component{
           $.post("/setTimeoutExercises",{id},function(data){
             main.setState({listExercises:data});
           })
+        } else {
+          distance -= 1000;
+          var objDateTime = {
+            ngay: Math.floor(distance / day),
+            gio: Math.floor((distance % day) / hour),
+            phut: Math.floor((distance % hour) / minute),
+            giay: Math.floor((distance % minute) / second)
+          }
+          if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
+          if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
+          if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
+          if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
+          _this.setState({
+            day: objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
+            second: objDateTime.giay
+          });
         }
-        distance -= 1000;
-        var objDateTime = {
-          ngay: Math.floor(distance / day),
-          gio: Math.floor((distance % day) / hour),
-          phut: Math.floor((distance % hour) / minute),
-          giay: Math.floor((distance % minute) / second)
-        }
-        if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
-        if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
-        if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
-        if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
-        _this.setState({day:objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
-        second: objDateTime.giay});
       },1000)
     }
     render(){
@@ -720,7 +724,8 @@ class Exercises extends React.Component{
     constructor(props){
         super(props);
         this.state = {
-          listExercises:[]
+          listExercises:[],
+          processing: false
         }
         main = this;
     }
@@ -748,6 +753,7 @@ class Exercises extends React.Component{
       }
     }
     componentDidMount(){
+      this.setState({processing:true});
       update = 1;
       var _this = this;
       const token = localStorage.getItem("token");
@@ -757,31 +763,33 @@ class Exercises extends React.Component{
           if (main.props.isAdmin == false){
             console.log("Cập nhật thôi");
             localStorage.setItem(receiveData,"true");
+            _this.setState({processing:true});
             $.get("/getValidExercises", function (data) {
-              main.setState({ listExercises: data });
+              main.setState({ listExercises: data, processing:false});
             })
           }     
         })
         $.get("/getValidExercises",function(data){
-          _this.setState({listExercises:data});
+          _this.setState({listExercises:data, processing:false});
       })
       } else {
         $.get("/api",{token},function(data){
           if (data.success==1){
             $.get("/api/allExercises",{token},function(data){
-              _this.setState({listExercises:data})
+              _this.setState({listExercises:data, processing:false})
             })
           } else {
             socket.on("client-update-list-exercises", function (receiveData) {
               if (main.props.isAdmin == false){
                 localStorage.setItem(receiveData,"true");
+                _this.setState({processing:true});
                 $.get("/getValidExercises", function (data) {
-                  main.setState({ listExercises: data });
+                  main.setState({ listExercises: data, processing:false});
                 })
               } 
             })
             $.get("/getValidExercises",function(data){
-            _this.setState({listExercises:data});
+            _this.setState({listExercises:data, processing:false});
           })
           }
         })
@@ -790,23 +798,26 @@ class Exercises extends React.Component{
     beingExer(){
       this.refs.search.value="";
       const token = localStorage.getItem("token");
+      this.setState({processing:true});
       $.get("/api/beingExercises",{token},function(data){
-        main.setState({listExercises:data});
+        main.setState({listExercises:data, processing:false});
       })
     }
     allExer(){
       this.refs.search.value="";
       const token = localStorage.getItem("token");
+      this.setState({processing:true});
       $.get("/api/allExercises",{token},function(data){
-        main.setState({listExercises:data});
+        main.setState({listExercises:data, processing:false});
       })
     }
     searchExer(e){
       $("#all").click();
+      this.setState({processing:true});
       const value = e.target.value;
       const token = localStorage.getItem("token");
       $.post("/api/searchExercises",{token,value},function(data){
-        main.setState({listExercises:data});
+        main.setState({listExercises:data, processing:false});
       })
     }
     render(){
@@ -826,6 +837,7 @@ class Exercises extends React.Component{
                     <button className="btn btn-success btnAdd" data-toggle="modal" data-target="#newExercise">
                       <i class="fa fa-plus" aria-hidden="true"></i> New Exercise</button>
                 </div> : <div></div>}
+                {this.state.processing ? <div class="line-loading"></div> : <div></div>}
                     <div className="row">
                     {this.state.listExercises.map(function(exer,index){
                       let component;
