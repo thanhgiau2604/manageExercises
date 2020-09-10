@@ -129,6 +129,7 @@ class Header extends React.Component{
             showChangePassword: false
         }
         this.showLogin = this.showLogin.bind(this);
+        this.goLogin = this.goLogin.bind(this);
         main = this;
     }
     showLogin(){
@@ -155,6 +156,9 @@ class Header extends React.Component{
         localStorage.clear();
         let {dispatch} = main.props;
         dispatch({type:"UPDATE_STATE_ADMIN",newState:false});
+    }
+    goLogin(){
+        console.log("vô login r");
     }
     componentWillMount(){
         let that = this;

@@ -21,16 +21,16 @@ class ContactForm extends React.Component{
                 </div>
                 <div className="email">
                   <i className="fa fa-envelope" />
-                  <p>manguyen@gmail.com</p>
+                  <p>Not available</p>
                 </div>
                 <div>
                   <i className="fa fa-phone" />
-                  <p />
+                  <p>Not available</p>
                 </div>
               </div>
             </div>
             <div className="col-lg-5 col-md-8">
-              <div className="form">
+              <div className="form contact">
                 <form action="forms/contact.php" method="post" role="form" className="php-email-form">
                   <div className="form-group">
                     <input type="text" name="name" className="form-control" id="name" placeholder="Tên" />

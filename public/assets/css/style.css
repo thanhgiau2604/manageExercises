@@ -1735,7 +1735,6 @@ body {
 .search-form {
   margin: auto;
   width: 50%;
-  border: 1px solid #eee;
   border-radius: 4px;
   padding: 1.5rem;
   display: flex;
@@ -1786,3 +1785,6 @@ body {
   }
 }
 
+.contact input {
+  border: 1px solid #ced4da!important;
+}

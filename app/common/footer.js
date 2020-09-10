@@ -13,7 +13,7 @@ class Footer extends React.Component{
             <div className="col-md-12 col-lg-4">
               <div className="footer-logo">
                 <a className="navbar-brand" href="#">mExercises</a>
-                <p>This is the place to download your exercises. Please complete it and submit it in the right place and on time.</p>
+                <p>This is the place to do your exercises and submit it online. Please complete and submit it on time.</p>
               </div>
             </div>
             <div className="col-md-12 col-lg-8">
