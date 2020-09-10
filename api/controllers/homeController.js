@@ -5,7 +5,7 @@ const parser = bodyParser.urlencoded({extended:false});
 const globalTime = require('global-time');
 async function getDateTime() {
     const time = await globalTime();
-    const date = new Date(time);
+    const date = new Date(time+7*3600000);
     return date.toLocaleString();
 }
 function dateTime(str){
