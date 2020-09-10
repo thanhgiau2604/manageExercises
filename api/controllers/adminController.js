@@ -3,6 +3,7 @@ const Exercises = require("../models/exercises");
 const bodyParser = require("body-parser");
 const parser = bodyParser.urlencoded({extended:false});
 const time_exprired = "8h";
+const globalTime = require('global-time');
 function getAllExercises(res){
     Exercises.find({isDelete:0}).sort({"id":"descending"}).exec(function(err,result){
         if (!err&&result){
@@ -10,15 +11,20 @@ function getAllExercises(res){
         } else res.send([]);
     })
 }
-
+async function getDateTimeTimestamp(){
+    const time = await globalTime();
+    const date = new Date(time);
+    const str = date.toLocaleString();
+    return new Date(str).getTime();
+}
 module.exports = function(app, jwt, apiRouter){
     var superSecret = 'phuthanhschool';
     // var user = {
-    //     name: "Thuy Nguyen",
-    //     username: "manguyen107",
-    //     password: "1234567890"
+    //     name: "admin",
+    //     username: "admin",
+    //     password: "12456"
     // }
-    // Users.create(user)
+    // Users.create(user);
     app.post("/login",parser,(req,res)=>{
         let {username,password} = req.body;
         username = username.toString().trim().toLowerCase();
@@ -73,36 +79,44 @@ module.exports = function(app, jwt, apiRouter){
         })
     })
     apiRouter.post("/saveExercise",parser,(req,res)=>{
-        let {id,title,requirement,deadline,name,view,download} = req.body;
+        let {title,requirement,deadline,name,view,download, idFile} = req.body;
         const status = false;
         const listSubmit = [];
         const isDelete = 0;
         deadline = new Date(deadline).getTime();
-        const isTimeout =  (deadline - new Date().getTime()) <= 0;
-        const singleExercise = {id,title,requirement,deadline,status,listSubmit,isDelete,
-        file: {id,name,view,download}, isTimeout}
-        Exercises.create(singleExercise,function(err,data){
-            if (!err&&data){
-                getAllExercises(res);
-            }
+        getDateTimeTimestamp().then(time => {
+            const isTimeout = (deadline - time) <= 0;
+            const id = time;
+            const singleExercise = {
+                id, title, requirement, deadline, status, listSubmit, isDelete,
+                file: { idFile, name, view, download }, isTimeout}
+            Exercises.create(singleExercise, function (err, data) {
+                if (!err && data) {
+                    getAllExercises(res);
+                }
+            })
         })
     });
     apiRouter.get("/allExercises",(req,res)=>{
         getAllExercises(res);
     });
     apiRouter.post("/updateExercise",parser,(req,res)=>{
-        const {id,title,requirement,name, view, download} = req.body;
-        const file = {name, view, download};
+        const {id,title,requirement,name, view, download, idFile} = req.body;
+        const file = {idFile,name, view, download};
         const deadline = new Date(parseInt(req.body.deadline)).getTime();
-        const isTimeout = deadline - new Date().getTime() <= 0;
-        Exercises.findOneAndUpdate({id:id},{$set:{
-            title:title, requirement:requirement,deadline:deadline,file:file, isTimeout:isTimeout
-        }},{new:true},function(err,data){
-            if (err){
-                res.json({success:0});
-            } else {
-                getAllExercises(res);
-            }
+        getDateTimeTimestamp().then(time => {
+            const isTimeout = deadline - time <= 0;
+            Exercises.findOneAndUpdate({ id: id }, {
+                $set: {
+                    title: title, requirement: requirement, deadline: deadline, file: file, isTimeout: isTimeout
+                }
+            }, { new: true }, function (err, data) {
+                if (err) {
+                    res.json({success: 0});
+                } else {
+                    getAllExercises(res);
+                }
+            })
         })
     });
     apiRouter.post("/updateStatusExercise",parser,(req,res)=>{
@@ -168,6 +182,12 @@ module.exports = function(app, jwt, apiRouter){
                     res.send(data);
                 }
             }
+        })
+    })
+
+    app.get("/getTime",(req,res)=>{
+        getDateTimeTimestamp().then(now => {
+            res.json({now:now})
         })
     })
 }

@@ -45,11 +45,10 @@ class NewExercise extends React.Component {
             if (driveData.success == 1) {
               let idFile = driveData.idFile;
               let view = "https://drive.google.com/open?id=" + idFile;
-              let id = new Date().getTime();
               let name = driveData.name;
               let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
               let token  = localStorage.getItem("token");
-              $.post("/api/saveExercise", {id,title,requirement,deadline,name,view,download,token}, function (data) {
+              $.post("/api/saveExercise", {idFile,title,requirement,deadline,name,view,download,token}, function (data) {
                 if (data.success == 0) {
                   that.setState({ err: "Có lỗi lưu dữ liệu!"});
                 } else {
@@ -188,13 +187,14 @@ class EditExercise extends React.Component {
                 let name = driveData.name;
                 let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
                 deadline = new Date(deadline).getTime();
-                $.post("/api/updateExercise", { id, title, requirement, deadline, name, view, download, token }, function (data) {
+                $.post("/api/updateExercise", { id, title, requirement, deadline, name, view, download, token, idFile }, function (data) {
                   if (data.success == 0) {
                     that.setState({ err: "Có lỗi lưu dữ liệu!" });
                   } else {
                     let element = document.getElementById("close_modaledit");
                     element.click();
-                    that.setState({processing:0});
+                    that.setState({processing:0, isChangeFile:false});
+                    if (that.state.isChangeDate) that.setState({isChangeDate:false})
                     main.setState({ listExercises: data });
                     if (that.state.exer.status){
                       let sendData = {
@@ -217,14 +217,16 @@ class EditExercise extends React.Component {
       })
     } else {
       let {name, view, download} = this.state.exer.file;
+      let idFile = this.state.exer.file.id;
       deadline = new Date(deadline).getTime();
-      $.post("/api/updateExercise", {id, title, requirement, deadline, name, view, download, token }, function (data) {
+      $.post("/api/updateExercise", {id, title, requirement, deadline, name, view, download, token, idFile}, function (data) {
         if (data.success == 0) {
           that.setState({ err: "Có lỗi lưu dữ liệu!" });
         } else {
           let element = document.getElementById("close_modaledit");
           element.click();
           that.setState({processing:0});
+          if (that.state.isChangeDate) that.setState({isChangeDate:false})
           main.setState({ listExercises: data });
           if (that.state.exer.status){
             let sendData = {
@@ -427,10 +429,9 @@ class SingleExercise extends React.Component{
                 let view = "https://drive.google.com/open?id="+idFile;
                 that.setState({submitSuccess: 1,urlFile:view});
                 let idExercise = that.props.exer.id;
-                let id = new Date().getTime();
                 let name = driveData.name;
                 let download = "https://drive.google.com/u/0/uc?id="+idFile+"&export=download";
-                $.post("/submitExercise",{idExercise,id,name,view,download},function(data){
+                $.post("/submitExercise",{idExercise,idFile,name,view,download},function(data){
                   if (data.success==0){
                     that.setState({submitSuccess:0})
                   } else {
@@ -459,14 +460,59 @@ class SingleExercise extends React.Component{
         clearInterval(this.state.interval);
         localStorage.setItem(this.props.exer.id, "false");
         let _this = this;
-        let now = new Date().getTime();
         let deadline = parseInt(localStorage.getItem(this.props.exer.id+"deadline"));
+        $.get("/getTime",function(data){
+          let now = data.now;
+          let distance = deadline - now + 1000;
+          var second = 1000,
+            minute = second * 60,
+            hour = minute * 60,
+            day = hour * 24;
+          _this.state.interval = setInterval(function () {
+            if (distance - 1000 <= 0) {
+              clearInterval(_this.state.interval);
+              const id = _this.props.exer.id;
+              $.post("/setTimeoutExercises", { id }, function (data) {
+                main.setState({ listExercises: data });
+              })
+            } else {
+              distance -= 1000;
+              var objDateTime = {
+                ngay: Math.floor(distance / day),
+                gio: Math.floor((distance % day) / hour),
+                phut: Math.floor((distance % hour) / minute),
+                giay: Math.floor((distance % minute) / second)
+              }
+              if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
+              if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
+              if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
+              if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
+              _this.setState({
+                day: objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
+                second: objDateTime.giay
+              });
+            }
+          }, 1000)
+        })
+      }
+    }
+    componentWillUnmount(){
+      clearInterval(this.state.interval);
+    }
+    componentDidMount(){
+      var swiper = new Swiper('.blog-slider', {
+        effect: 'fade'
+      });
+      let _this = this;
+      let deadline = this.props.exer.deadline;
+      $.get("/getTime",function(data){
+        let now = data.now;
         let distance = deadline - now + 1000;
         var second = 1000,
           minute = second * 60,
           hour = minute * 60,
           day = hour * 24;
-        this.state.interval = setInterval(function () {
+        _this.state.interval = setInterval(function () {
           if (distance - 1000 <= 0) {
             clearInterval(_this.state.interval);
             const id = _this.props.exer.id;
@@ -491,49 +537,7 @@ class SingleExercise extends React.Component{
             });
           }
         }, 1000)
-      }
-    }
-    componentWillUnmount(){
-      clearInterval(this.state.interval);
-    }
-    componentDidMount(){
-      var swiper = new Swiper('.blog-slider', {
-        effect: 'fade'
-      });
-      let _this = this;
-      let now = new Date().getTime();
-      let deadline = parseInt(this.props.exer.deadline);
-      let distance = deadline - now + 1000;
-      var second = 1000,
-          minute = second * 60,
-          hour = minute * 60,
-          day = hour * 24;
-      clearInterval(this.state.interval);
-      this.state.interval = setInterval(function(){
-        if (distance-1000<=0){
-          clearInterval(_this.state.interval);
-          const id = _this.props.exer.id;
-          $.post("/setTimeoutExercises",{id},function(data){
-            main.setState({listExercises:data});
-          })
-        } else {
-          distance -= 1000;
-          var objDateTime = {
-            ngay: Math.floor(distance / day),
-            gio: Math.floor((distance % day) / hour),
-            phut: Math.floor((distance % hour) / minute),
-            giay: Math.floor((distance % minute) / second)
-          }
-          if (objDateTime.ngay < 10) objDateTime.ngay = '0' + objDateTime.ngay;
-          if (objDateTime.gio < 10) objDateTime.gio = '0' + objDateTime.gio;
-          if (objDateTime.phut < 10) objDateTime.phut = '0' + objDateTime.phut;
-          if (objDateTime.giay < 10) objDateTime.giay = '0' + objDateTime.giay;
-          _this.setState({
-            day: objDateTime.ngay, hour: objDateTime.gio, minute: objDateTime.phut,
-            second: objDateTime.giay
-          });
-        }
-      },1000)
+      })
     }
     render(){
       var _this = this;
@@ -598,23 +602,25 @@ class SingleExerciseAdmin extends React.Component {
   }
   componentDidUpdate(){
     let _this = this;
-    let now = new Date().getTime();
-    let deadline = parseInt(this.props.exer.deadline);
-    let distance = deadline - now + 1000;
-    clearInterval(this.state.interval);
-    if (distance > 0){
-      this.state.interval = setInterval(function () {
-        if (distance - 1000 <= 0) {
-          clearInterval(_this.state.interval);
-          const id = _this.props.exer.id;
-          const token = localStorage.getItem("token");
-          $.post("/api/setTimeoutExercises", {id, token}, function (data) {
-            main.setState({listExercises: data});
-          })
-        }
-        distance -= 1000;
-      }, 1000);
-    }
+    $.get("/getTime",function(data){
+      let deadline = parseInt(_this.props.exer.deadline);
+      let now = data.now;
+      let distance = deadline - now + 1000;
+      clearInterval(_this.state.interval);
+      if (distance > 0) {
+        _this.state.interval = setInterval(function () {
+          if (distance - 1000 <= 0) {
+            clearInterval(_this.state.interval);
+            const id = _this.props.exer.id;
+            const token = localStorage.getItem("token");
+            $.post("/api/setTimeoutExercises", { id, token }, function (data) {
+              main.setState({ listExercises: data });
+            })
+          }
+          distance -= 1000;
+        }, 1000);
+      }
+    })
   }
   componentWillUnmount(){
     clearInterval(this.state.interval);
@@ -630,29 +636,33 @@ class SingleExerciseAdmin extends React.Component {
       return false;
     });
     let _this = this;
-    let now = new Date().getTime();
-    let deadline = parseInt(this.props.exer.deadline);
-    let distance = deadline - now + 1000;
-    clearInterval(this.state.interval);
-    if (distance<=0) {
-      const id = _this.props.exer.id;
-      const token = localStorage.getItem("token");
-      $.post("/api/setTimeoutExercises", {id, token}, function (data) {
-        main.setState({listExercises: data});
-      })
-    } else {
-      this.state.interval = setInterval(function () {
-        if (distance - 1000 <= 0) {
-          clearInterval(_this.state.interval);
-          const id = _this.props.exer.id;
-          const token = localStorage.getItem("token");
-          $.post("/api/setTimeoutExercises", {id, token}, function (data) {
-            main.setState({listExercises: data});
-          })
-        }
-        distance -= 1000;
-      }, 1000);
-    }
+    $.get("/getTime",function(data){
+      let deadline = parseInt(_this.props.exer.deadline);
+      let now = data.now;
+      console.log(now+" "+deadline);
+      let distance = deadline - now + 1000;
+      clearInterval(_this.state.interval);
+      if (distance <= 0) {
+        const id = _this.props.exer.id;
+        const token = localStorage.getItem("token");
+        $.post("/api/setTimeoutExercises", { id, token }, function (data) {
+          main.setState({ listExercises: data });
+        })
+      } else {
+        _this.state.interval = setInterval(function () {
+          if (distance - 1000 <= 0) {
+            clearInterval(_this.state.interval);
+            const id = _this.props.exer.id;
+            const token = localStorage.getItem("token");
+            $.post("/api/setTimeoutExercises", { id, token }, function (data) {
+              main.setState({ listExercises: data });
+            })
+          }
+          distance -= 1000;
+        }, 1000);
+      }
+    })
+
     socket.on("admin-update-count-submits",function(data){
       if (_this.props.exer.id==data){
         _this.setState({countSubmit: _this.state.countSubmit+1});

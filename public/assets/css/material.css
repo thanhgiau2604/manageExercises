@@ -433,7 +433,7 @@ body {
   color: white;
   font-size: 20px;
   top: 35%;
-  left: 5px;
+  left: 5%;
 }
 .deadline_exercise {
   z-index: 100;
@@ -475,7 +475,7 @@ body {
      font-size: 30px;
   }
   .countdown {
-    left: 15%;
+    left: 0%;
 }
   .countdown-item {
 

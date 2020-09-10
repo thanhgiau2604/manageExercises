@@ -2,15 +2,18 @@ const Exercises = require("../models/exercises");
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const parser = bodyParser.urlencoded({extended:false});
-function getCurrentDayTime() {
-    offset = "+7";
-    var d = new Date();
-    var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-    var day = new Date(utc + (3600000*offset));
-    var nowday = day.getDate().toString()+"-"+(day.getMonth()+1).toString()+"-"+day.getFullYear().toString()+" "
-    +day.getHours().toString()+"g"+day.getMinutes().toString();
-    return nowday;
-  }
+const globalTime = require('global-time');
+async function getDateTime() {
+    const time = await globalTime();
+    const date = new Date(time);
+    return date.toLocaleString();
+}
+function dateTime(str){
+    let d = new Date(str);
+    return (d.getDate()+"-"+(d.getMonth()+1) +"-"+d.getFullYear()+" "+
+    d.getHours()+"h"+d.getMinutes()+"m"+d.getSeconds()+"s");
+}
+
 function getValidExercises(res){
     Exercises.find({status:true, isTimeout:false}).sort({"id":"descending"}).exec(function(err,listExercises){
         if (!err && listExercises){
@@ -28,9 +31,11 @@ module.exports = function(app){
     const storage = multer.diskStorage({
         destination: (req, file, cb) => cb(null, "./public/upload/"),
         filename: (req, file, cb) => {
-            time = getCurrentDayTime();
-            nameFile = time+" "+ file.originalname;
-            cb(null, nameFile);
+            getDateTime().then( result => {
+                time = dateTime(result);
+                nameFile = time+" "+ file.originalname;
+                cb(null, nameFile);
+            })
         }
     }); 
 
@@ -49,8 +54,8 @@ module.exports = function(app){
     });
 
     app.post("/submitExercise",parser,(req,res)=>{
-        const {idExercise,id,name,view,download} = req.body;
-        const single_sumit = {id, name, view, download};
+        const {idExercise,idFile,name,view,download} = req.body;
+        const single_sumit = {idFile, name, view, download};
         Exercises.findOneAndUpdate({id:idExercise},{$addToSet:{listSubmit:single_sumit}},function(err,data){
             if (err){
                 console.log(err);

@@ -43,7 +43,6 @@ function getAccessToken(oAuth2Client, callback) {
         });
     });
 }
-
 function uploadFile(auth){
     const drive = google.drive('v3');
     const filesMetadata = {

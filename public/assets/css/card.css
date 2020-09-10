@@ -136,6 +136,7 @@ body {
 }
 @media screen and (max-width: 768px) {
   .blog-slider__img {
+    left: 0;
     height: 170px;
     transform: translateY(-50%);
     width: 80%;
@@ -143,7 +144,11 @@ body {
 }
 @media screen and (max-width: 576px) {
   .blog-slider__img {
+    left: 0;
     width: 95%;
+  }
+  .countdown {
+    left:0!important;
   }
 }
 @media screen and (max-height: 500px) and (min-width: 992px) {
@@ -259,5 +264,8 @@ body {
   .blog-slider__pagination .swiper-pagination-bullet-active {
     height: 11px;
     width: 30px;
+  }
+  .countdown {
+    left: 15%;
   }
 }
