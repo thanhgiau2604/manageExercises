@@ -55,7 +55,7 @@ module.exports = function(app){
 
     app.post("/submitExercise",parser,(req,res)=>{
         const {idExercise,idFile,name,view,download} = req.body;
-        const single_sumit = {idFile, name, view, download};
+        const single_sumit = {id:idFile, name, view, download};
         Exercises.findOneAndUpdate({id:idExercise},{$addToSet:{listSubmit:single_sumit}},function(err,data){
             if (err){
                 console.log(err);

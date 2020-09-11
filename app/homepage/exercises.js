@@ -27,47 +27,73 @@ class NewExercise extends React.Component {
     const requirement = this.refs.requireExercise.value;
     let deadline = this.refs.deadline.value;
     const file = this.state.file.name;
-    if (!title.trim() || !requirement.trim() || !deadline || !file){
+    if (!title.trim() || !requirement.trim()){
       this.setState({err:"Chưa điền đẩy đủ các trường!"});
       return;
     }
+    if (!deadline) deadline = 0;
     this.setState({err:"", processing:1});
     var that = this;
-    let fileFormObj = new FormData();
-    fileFormObj.append("fileData", this.state.file);
-    $.ajax({
-      type: "POST", url: "/uploadFile", data: fileFormObj, processData: false, contentType: false,
-      success: function (data) {
-        if (data.err) {
-          that.setState({err:"Di chuyển file!"});
+    if (!file){
+      let token = localStorage.getItem("token");
+      let idFile = 0;
+      let name = "Not available";
+      let view = "#";
+      let download = "#";
+      $.post("/api/saveExercise", { idFile, title, requirement, deadline, name, view, download, token }, function (data) {
+        if (data.validToken == false){
+          that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
+        } else
+        if (data.success == 0) {
+          that.setState({ err: "Có lỗi lưu dữ liệu!" });
         } else {
-          $.post("/uploadToDrive", { name: data.name }, function (driveData) {
-            if (driveData.success == 1) {
-              let idFile = driveData.idFile;
-              let view = "https://drive.google.com/open?id=" + idFile;
-              let name = driveData.name;
-              let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
-              let token  = localStorage.getItem("token");
-              $.post("/api/saveExercise", {idFile,title,requirement,deadline,name,view,download,token}, function (data) {
-                if (data.success == 0) {
-                  that.setState({ err: "Có lỗi lưu dữ liệu!"});
-                } else {
-                  let element = document.getElementById("close_modal");
-                  element.click();
-                  that.setState({processing:0});
-                  main.setState({listExercises:data});
-                }
-              })
-            } else {
-              that.setState({ err: "Lỗi upload lên Google Drive!"});
-            }
-          })
+          let element = document.getElementById("close_modal");
+          element.click();
+          that.setState({ processing: 0 });
+          main.setState({ listExercises: data });
         }
-      },
-      fail: function (err) {
-        that.setState({ err: "Lỗi di chuyển file" });
-      }
-    })   
+      })
+    } else {
+      let fileFormObj = new FormData();
+      fileFormObj.append("fileData", this.state.file);
+      $.ajax({
+        type: "POST", url: "/uploadFile", data: fileFormObj, processData: false, contentType: false,
+        success: function (data) {
+          if (data.err) {
+            that.setState({err:"Di chuyển file!"});
+          } else {
+            $.post("/uploadToDrive", { name: data.name }, function (driveData) {
+              if (driveData.success == 1) {
+                let idFile = driveData.idFile;
+                let view = "https://drive.google.com/open?id=" + idFile;
+                let name = driveData.name;
+                let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
+                let token  = localStorage.getItem("token");
+                $.post("/api/saveExercise", {idFile,title,requirement,deadline,name,view,download,token}, function (data) {
+                  if (data.validToken == false){
+                    that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
+                  } else
+                  if (data.success == 0) {
+                    that.setState({ err: "Có lỗi lưu dữ liệu!"});
+                  } else {
+                    let element = document.getElementById("close_modal");
+                    element.click();
+                    that.setState({processing:0});
+                    main.setState({listExercises:data});
+                  }
+                })
+              } else {
+                that.setState({ err: "Lỗi upload lên Google Drive!"});
+              }
+            })
+          }
+        },
+        fail: function (err) {
+          that.setState({ err: "Lỗi di chuyển file" });
+        }
+      })   
+
+    }
   }
   render(){
     return(<div className="modal fade" id="newExercise">
@@ -161,7 +187,7 @@ class EditExercise extends React.Component {
     const requirement = this.refs.requireExercise.value;
     let deadline = this.refs.deadline1.value;
     const file = this.state.file.name;
-    if (!title.trim() || !requirement.trim() || !file){
+    if (!title.trim() || !requirement.trim()){
       this.setState({err:"Chưa điền đẩy đủ các trường!"});
       return;
     }
@@ -188,6 +214,9 @@ class EditExercise extends React.Component {
                 let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
                 deadline = new Date(deadline).getTime();
                 $.post("/api/updateExercise", { id, title, requirement, deadline, name, view, download, token, idFile }, function (data) {
+                  if (data.validToken==false){
+                    that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
+                  } else
                   if (data.success == 0) {
                     that.setState({ err: "Có lỗi lưu dữ liệu!" });
                   } else {
@@ -220,6 +249,9 @@ class EditExercise extends React.Component {
       let idFile = this.state.exer.file.id;
       deadline = new Date(deadline).getTime();
       $.post("/api/updateExercise", {id, title, requirement, deadline, name, view, download, token, idFile}, function (data) {
+        if (data.validToken==false){
+          that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
+        } else
         if (data.success == 0) {
           that.setState({ err: "Có lỗi lưu dữ liệu!" });
         } else {
@@ -361,6 +393,9 @@ class ConfirmDelete extends React.Component {
     let _this = this;
     this.setState({processing:true});
     $.post("/api/deleteExercise",{token,id},function(data){
+      if (data.validToken==false){
+        window.location.replace("/");
+      } else
       if (data.success!=0){
         main.setState({listExercises:data});
         let element = document.getElementById("close_delete");
@@ -461,6 +496,7 @@ class SingleExercise extends React.Component{
         localStorage.setItem(this.props.exer.id, "false");
         let _this = this;
         let deadline = parseInt(localStorage.getItem(this.props.exer.id+"deadline"));
+        deadline != 0 ?
         $.get("/getTime",function(data){
           let now = data.now;
           let distance = deadline - now + 1000;
@@ -493,7 +529,7 @@ class SingleExercise extends React.Component{
               });
             }
           }, 1000)
-        })
+        }) : {}
       }
     }
     componentWillUnmount(){
@@ -505,6 +541,7 @@ class SingleExercise extends React.Component{
       });
       let _this = this;
       let deadline = this.props.exer.deadline;
+      this.props.exer.deadline != 0 ?
       $.get("/getTime",function(data){
         let now = data.now;
         let distance = deadline - now + 1000;
@@ -537,7 +574,7 @@ class SingleExercise extends React.Component{
             });
           }
         }, 1000)
-      })
+      }) : {}
     }
     render(){
       var _this = this;
@@ -549,22 +586,28 @@ class SingleExercise extends React.Component{
           <div className="blog-slider__wrp swiper-wrapper">
             <div className="blog-slider__item swiper-slide">
               <div className="blog-slider__img">
+                {this.props.exer.deadline!=0 ?
                     <ul class="countdown">
                       <li class="countdown-item"><span class="countdown-number days">{this.state.day}</span><span class="countdown-text">Ngày</span></li>
                       <li class="countdown-item"><span class="countdown-number hours">{this.state.hour}</span><span class="countdown-text">Giờ</span></li>
                       <li class="countdown-item"><span class="countdown-number minutes">{this.state.minute}</span><span class="countdown-text">Phút</span></li>
                       <li class="countdown-item"><span class="countdown-number seconds">{this.state.second}</span><span class="countdown-text">Giây</span></li>
-                    </ul>
+                    </ul> : <ul class="deadline_exercise">
+                  <h3><b>Deadline: </b>Không có</h3> </ul>}
               </div>
               <div className="blog-slider__content">
                 <div className="blog-slider__title">{this.props.exer.title}</div>
-                <div className="blog-slider__text"><b>Hạn nộp bài: </b> {new Date(this.props.exer.deadline).toLocaleString()}</div>
+                <div className="blog-slider__text"><b>Hạn nộp bài: </b> 
+                {this.props.exer.deadline!=0 ? new Date(this.props.exer.deadline).toLocaleString() : " Không có"}</div>
                 <div className="blog-slider__text"><b>Yêu cầu:</b> {this.props.exer.requirement}</div>
-                {this.props.exer.file ?
+                {this.props.exer.file.name!="Not available" ?
                <div className="blog-slider__text">
-                 <b>File tài liệu: </b><a href={this.props.exer.file.download}>Click để tải tài liệu</a><span>, </span>
+                 <b>File tài liệu: </b>
+                 <a href={this.props.exer.file.download}>Click để tải tài liệu</a><span>, </span>
                  <a href={this.props.exer.file.view} target="_blank">Click để xem tài liệu</a>
-               </div> : <div></div>}
+               </div> : <div className="blog-slider__text">
+                 <b>File tài liệu: </b> Không có
+               </div>}
                 <div className="blog-slider__title">Nộp bài</div>
                 <form className="form-submit">
                   <div className="custom-file">
@@ -602,6 +645,7 @@ class SingleExerciseAdmin extends React.Component {
   }
   componentDidUpdate(){
     let _this = this;
+    this.props.exer.deadline != 0 ?
     $.get("/getTime",function(data){
       let deadline = parseInt(_this.props.exer.deadline);
       let now = data.now;
@@ -620,7 +664,7 @@ class SingleExerciseAdmin extends React.Component {
           distance -= 1000;
         }, 1000);
       }
-    })
+    }) : {}
   }
   componentWillUnmount(){
     clearInterval(this.state.interval);
@@ -636,10 +680,10 @@ class SingleExerciseAdmin extends React.Component {
       return false;
     });
     let _this = this;
+    this.props.exer.deadline != 0 ?
     $.get("/getTime",function(data){
       let deadline = parseInt(_this.props.exer.deadline);
       let now = data.now;
-      console.log(now+" "+deadline);
       let distance = deadline - now + 1000;
       clearInterval(_this.state.interval);
       if (distance <= 0) {
@@ -661,7 +705,7 @@ class SingleExerciseAdmin extends React.Component {
           distance -= 1000;
         }, 1000);
       }
-    })
+    }) : {}
 
     socket.on("admin-update-count-submits",function(data){
       if (_this.props.exer.id==data){
@@ -675,6 +719,9 @@ class SingleExerciseAdmin extends React.Component {
     const id = this.props.exer.id;
     const status = e.target.checked;
     $.post("/api/updateStatusExercise",{id,status,token},function(data){
+      if (data.validToken==false){
+        window.location.replace("/");
+      } else
       socket.emit("update-for-client-list-exercises","");
     })
   }
@@ -703,16 +750,19 @@ class SingleExerciseAdmin extends React.Component {
            <div className="blog-slider__item swiper-slide">
              <div className="blog-slider__img">
                 <ul class="deadline_exercise">
-                  <h3><b>Deadline: </b>{new Date(this.props.exer.deadline).toLocaleString()}</h3>
+                  <h3><b>Deadline: </b>{this.props.exer.deadline!=0 ? 
+                  new Date(this.props.exer.deadline).toLocaleString() : " Không có"}</h3>
                 </ul>
              </div>
              <div className="blog-slider__content">
                <div className="blog-slider__title">{this.props.exer.title}</div>
                <div className="blog-slider__text"><b>Yêu cầu: </b>{this.props.exer.requirement}</div>
-               {this.props.exer.file ?
+               {this.props.exer.file.name!="Not available" ?
                <div className="blog-slider__text">
                  <b>File tài liệu: </b> <a href={this.props.exer.file.view} target="_blank">Click để xem tài liệu</a>
-               </div> : ""}
+               </div> : <div className="blog-slider__text">
+                 <b>File tài liệu: </b> Không có
+               </div>}
                 <button type="button" className="btn btn-primary btn-submit" data-toggle="modal" data-target="#modalSubmit"
                 onClick={this.viewSubmits.bind(this)}>Bài đã nộp: 
                 <span className="countSubmit">{" "+this.state.countSubmit}</span></button>
@@ -813,7 +863,11 @@ class Exercises extends React.Component{
       const token = localStorage.getItem("token");
       this.setState({processing:true});
       $.get("/api/beingExercises",{token},function(data){
-        main.setState({listExercises:data, processing:false});
+        if (data.validToken==false){
+          window.location.replace("/");
+        } else {
+          main.setState({listExercises:data, processing:false});
+        }
       })
     }
     allExer(){
@@ -821,7 +875,11 @@ class Exercises extends React.Component{
       const token = localStorage.getItem("token");
       this.setState({processing:true});
       $.get("/api/allExercises",{token},function(data){
+        if (data.validToken==false){
+          window.location.replace("/");
+        } else {
         main.setState({listExercises:data, processing:false});
+        }
       })
     }
     searchExer(e){
@@ -830,7 +888,11 @@ class Exercises extends React.Component{
       const value = e.target.value;
       const token = localStorage.getItem("token");
       $.post("/api/searchExercises",{token,value},function(data){
-        main.setState({listExercises:data, processing:false});
+        if (data.validToken==false){
+          window.location.replace("/");
+        } else {
+          main.setState({listExercises:data, processing:false});
+        }
       })
     }
     render(){

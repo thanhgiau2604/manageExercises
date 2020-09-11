@@ -96,6 +96,9 @@ class UpdatePassword extends React.Component {
             const username = localStorage.getItem("username");
             const token = localStorage.getItem("token");
             $.post("/api/updatePassword",{username:username,password:password, token:token},function(data){
+                if (data.validToken==false){
+                    _this.setState({err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!"});
+                  } else
                 if (data.success==0){
                     _this.setState({err: "Có lỗi xảy ra. Vui lòng thử lại!"});
                 } else {
@@ -129,7 +132,6 @@ class Header extends React.Component{
             showChangePassword: false
         }
         this.showLogin = this.showLogin.bind(this);
-        this.goLogin = this.goLogin.bind(this);
         main = this;
     }
     showLogin(){
@@ -158,7 +160,6 @@ class Header extends React.Component{
         dispatch({type:"UPDATE_STATE_ADMIN",newState:false});
     }
     goLogin(){
-        console.log("vô login r");
     }
     componentWillMount(){
         let that = this;

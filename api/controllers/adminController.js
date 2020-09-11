@@ -57,14 +57,14 @@ module.exports = function(app, jwt, apiRouter){
         if (token){
             jwt.verify(token,superSecret,function(err,decoded){
                 if (err){
-                    return res.json({success:0,message:'Failed to authenticate token'});
+                    return res.json({success:0,message:'Failed to authenticate token', validToken:false});
                 } else {
                     req.decoded = decoded;
                     next();
                 }
             })
         } else {
-            return res.json({success:0});
+            return res.json({success:0, validToken:false});
         }
     });
     apiRouter.get("/",(req,res)=>res.json({success:1}));
@@ -83,13 +83,17 @@ module.exports = function(app, jwt, apiRouter){
         const status = false;
         const listSubmit = [];
         const isDelete = 0;
-        deadline = new Date(deadline).getTime();
+        let isTimeout;
         getDateTimeTimestamp().then(time => {
-            const isTimeout = (deadline - time) <= 0;
+            if (deadline==0) isTimeout = false;
+            else {
+                deadline = new Date(deadline).getTime();
+                isTimeout = (deadline - time) <= 0;
+            }
             const id = time;
             const singleExercise = {
                 id, title, requirement, deadline, status, listSubmit, isDelete,
-                file: { idFile, name, view, download }, isTimeout}
+                file: { id:idFile, name, view, download }, isTimeout}
             Exercises.create(singleExercise, function (err, data) {
                 if (!err && data) {
                     getAllExercises(res);
@@ -102,10 +106,14 @@ module.exports = function(app, jwt, apiRouter){
     });
     apiRouter.post("/updateExercise",parser,(req,res)=>{
         const {id,title,requirement,name, view, download, idFile} = req.body;
-        const file = {idFile,name, view, download};
-        const deadline = new Date(parseInt(req.body.deadline)).getTime();
+        const file = {id:idFile,name, view, download};
+        let deadline = req.body.deadline;
+        let isTimeout;
         getDateTimeTimestamp().then(time => {
-            const isTimeout = deadline - time <= 0;
+            if (deadline==0) isTimeout= false; else {
+                deadline  = new Date(parseInt(deadline)).getTime();
+                isTimeout = deadline - time <= 0;
+            }     
             Exercises.findOneAndUpdate({ id: id }, {
                 $set: {
                     title: title, requirement: requirement, deadline: deadline, file: file, isTimeout: isTimeout
@@ -190,4 +198,5 @@ module.exports = function(app, jwt, apiRouter){
             res.json({now:now})
         })
     })
+
 }
