@@ -87,7 +87,7 @@ module.exports = function(app, jwt, apiRouter){
         getDateTimeTimestamp().then(time => {
             if (deadline==0) isTimeout = false;
             else {
-                deadline = new Date(deadline).getTime();
+                deadline = new Date(parseInt(deadline)).getTime();
                 isTimeout = (deadline - time) <= 0;
             }
             const id = time;
