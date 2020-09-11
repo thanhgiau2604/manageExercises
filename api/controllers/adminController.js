@@ -111,8 +111,9 @@ module.exports = function(app, jwt, apiRouter){
         let isTimeout;
         getDateTimeTimestamp().then(time => {
             if (deadline==0) isTimeout= false; else {
+                const value = new Date().getTimezoneOffset() + 420;
                 deadline  = new Date(parseInt(deadline)).getTime();
-                isTimeout = deadline - time <= 0;
+                isTimeout = (deadline - time) <= 0;
             }     
             Exercises.findOneAndUpdate({ id: id }, {
                 $set: {
@@ -198,5 +199,4 @@ module.exports = function(app, jwt, apiRouter){
             res.json({now:now})
         })
     })
-
 }

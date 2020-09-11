@@ -12,7 +12,7 @@ const ExerciseSchema = new Schema({
     status: Boolean,
     listSubmit: [
         {
-            id: Number, name: String, view: String, download: String
+            id: String, name: String, view: String, download: String
         }
     ],
     isDelete: Number,

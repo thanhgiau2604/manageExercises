@@ -6,6 +6,9 @@ import 'swiper/swiper-bundle.css'
 import io from 'socket.io-client'
 const socket = io('https://mexercises.herokuapp.com');
 var file, main, edit, deleted, submit;
+function ConvertTime(deadline){
+  return new Date(deadline).toLocaleString();
+}
 class NewExercise extends React.Component {
   constructor(props){
     super(props);
@@ -600,7 +603,7 @@ class SingleExercise extends React.Component{
               <div className="blog-slider__content">
                 <div className="blog-slider__title">{this.props.exer.title}</div>
                 <div className="blog-slider__text"><b>Hạn nộp bài: </b> 
-                {this.props.exer.deadline!=0 ? new Date(this.props.exer.deadline).toLocaleString() : " Không có"}</div>
+                {this.props.exer.deadline!=0 ? ConvertTime(this.props.exer.deadline) : " Không có"}</div>
                 <div className="blog-slider__text"><b>Yêu cầu:</b> {this.props.exer.requirement}</div>
                 {this.props.exer.file.name!="Not available" ?
                <div className="blog-slider__text">
@@ -753,7 +756,7 @@ class SingleExerciseAdmin extends React.Component {
              <div className="blog-slider__img">
                 <ul class="deadline_exercise">
                   <h3><b>Deadline: </b>{this.props.exer.deadline!=0 ? 
-                  new Date(this.props.exer.deadline).toLocaleString() : " Không có"}</h3>
+                  ConvertTime(this.props.exer.deadline) : " Không có"}</h3>
                 </ul>
              </div>
              <div className="blog-slider__content">
