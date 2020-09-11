@@ -40,6 +40,7 @@ class NewExercise extends React.Component {
       let name = "Not available";
       let view = "#";
       let download = "#";
+      deadline = new Date(deadline).getTime();
       $.post("/api/saveExercise", { idFile, title, requirement, deadline, name, view, download, token }, function (data) {
         if (data.validToken == false){
           that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
@@ -69,6 +70,7 @@ class NewExercise extends React.Component {
                 let name = driveData.name;
                 let download = "https://drive.google.com/u/0/uc?id=" + idFile + "&export=download";
                 let token  = localStorage.getItem("token");
+                deadline = new Date(deadline).getTime();
                 $.post("/api/saveExercise", {idFile,title,requirement,deadline,name,view,download,token}, function (data) {
                   if (data.validToken == false){
                     that.setState({ err: "Phiên làm việc đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!" });
