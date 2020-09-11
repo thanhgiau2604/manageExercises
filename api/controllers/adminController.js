@@ -15,7 +15,7 @@ async function getDateTimeTimestamp(){
     const time = await globalTime();
     const date = new Date(time);
     const str = date.toLocaleString();
-    return new Date(str).getTime();
+    return new Date(str).getTime()+7*3600000;
 }
 module.exports = function(app, jwt, apiRouter){
     var superSecret = 'phuthanhschool';
@@ -87,7 +87,7 @@ module.exports = function(app, jwt, apiRouter){
         getDateTimeTimestamp().then(time => {
             if (deadline==0) isTimeout = false;
             else {
-                deadline = new Date(deadline).getTime();
+                deadline = new Date(deadline).getTime()+7*3600000;
                 isTimeout = (deadline - time) <= 0;
             }
             const id = time;
@@ -111,7 +111,7 @@ module.exports = function(app, jwt, apiRouter){
         let isTimeout;
         getDateTimeTimestamp().then(time => {
             if (deadline==0) isTimeout= false; else {
-                deadline  = new Date(parseInt(deadline)).getTime();
+                deadline  = new Date(parseInt(deadline)).getTime()+7*3600000;
                 isTimeout = deadline - time <= 0;
             }     
             Exercises.findOneAndUpdate({ id: id }, {
